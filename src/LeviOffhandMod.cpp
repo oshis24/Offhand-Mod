@@ -120,7 +120,7 @@ public:
                 .modId(context.id())
                 .description(
                     "Arbitrary offhand storage/rendering. "
-                    "v0.2.59 crash-safe Bow/Trident live calibration."
+                    "v0.2.60 native Item offhand policy + Bow/Trident calibration."
                 )
                 .defaultEnabled(true)
                 .hideInHudEditor(true)
@@ -157,16 +157,16 @@ public:
 
         context.logger().info("Levi Offhand registered in Mod Menu");
         context.logger().info(
-            "v0.2.59 crash-safe Bow Rot-Z + native-left Trident calibration active"
+            "v0.2.60 native Item::mAllowOffHand policy active; ContainerValidation bypasses removed"
         );
         context.logger().info(
             "Bow FPP fixed: generic FIRSTPERSON_LEFT with native DataDriven Bow masked"
         );
         context.logger().info(
-            "Bow TPP v0.2.59: generic LEFT route + live semantic Rot-Z tilt"
+            "Bow TPP v0.2.60: generic LEFT route + live semantic Rot-Z tilt"
         );
         context.logger().info(
-            "Trident FPP v0.2.59: native off_hand->leftitem + pole Z180 + live horizontal"
+            "Trident FPP v0.2.60: native off_hand->leftitem + pole Z180 + live horizontal"
         );
         context.logger().info(
             "Decorated Pot/Copper calibration frozen as default values"
