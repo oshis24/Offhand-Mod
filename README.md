@@ -2,39 +2,38 @@
 
 Native Levi Launcher Android mod for Minecraft Bedrock **1.26.45.1**.
 
-## v0.2.59 — crash-safe Trident native binding + one-session visual calibration
+## v0.2.60 — native Item offhand policy architecture
 
-v0.2.58 crashed with `SIGILL` at `0xEEAB3B4`. The tombstone proves the fault is
-immediately after the tiny helper at `0xEEAB3AC`. That helper is only two AArch64
-instructions (`ADD x0,x0,#8; RET`), so installing a normal inline hook there
-necessarily overwrites into the next native routine. v0.2.59 removes that hook
-completely.
+This diagnostic release removes the five storage-policy detours used by the
+previous architecture (`manual-set`, `auto-add`, `tryTransfer`, `trySwap`, and
+`ItemStackBase::getAllowOffHand`). Instead, it follows Minecraft's own Item
+state: `Item::Item` initializes a 16-bit flag field at `Item+0x112`, and bit
+`0x80` is the native `mAllowOffHand` bit read by `getAllowOffHand`.
 
-Fresh static RE of the supplied Minecraft 1.26.45.1 binary also shows the hook was
-unnecessary. Mojang's native `query.item_slot_to_bone_name` implementation already
-maps the slot-name hash `off_hand` (`0x5D4C22812BA3AF8C`) to the owner-bone hash
-`leftitem` (`0x1CF3FDCBB0AB92F7`). Therefore Trident keeps the vanilla mode-3 Molang
-binding and native 3D attachment path. The generic 2D fallback remains suppressed.
+For the supplied 1.26.45.1 binary, the constructor initializes that word from
+`0x50`. v0.2.60 changes only the constructor immediate to `0xD0`, preserving
+all existing default bits and adding `0x80`. The patch is one four-byte native
+instruction change; no ContainerValidation/getAllowOffHand trampoline is used.
 
-The visible Trident still needs the first-person animation shifted across the
-screen, so v0.2.59 exposes a temporary `Trident FPP Horizontal (TEMP)` slider
-(-1.5..1.5, default +0.875). Only the composed Trident pole X translation is
-changed; native Y/Z are preserved. The existing post-compose Z+180 head/tail
-correction remains active.
+Visual Bow/Trident code is intentionally left at the v0.2.59 state so this
+build isolates the effect of making every Item genuinely offhand-capable.
 
-Bow TPP keeps the v0.2.58 `Bow TPP Tilt (TEMP)` slider. Its grip translation is
-preserved while semantic Rot-Z is adjusted, so the final Bow angle can also be
-locked during the same game session.
+### Runtime validation
 
-Decisive markers:
+Test these before changing visual code again:
 
-- `[BowTppTiltSlider] semanticRotZ=...`
-- `[BowTppGripPivot] semanticRotZDelta=... translationPreserved=1`
-- `[TridentFppNativeBinding] off_hand->leftitem verified statically`
-- `[TridentFppHorizontalSlider] delta=...`
-- `[TridentFppHorizontal] nativeX=... delta=... finalX=...`
-- `[TridentFppPoleRotation] postComposeZ180 ...`
-- `[TridentFppNative3D]` confirms the native 3D route remains active
+1. Move Stone (or another normally unsupported item) inventory -> offhand and back.
+2. Move an unsupported item chest -> offhand and offhand -> chest.
+3. Swap mainhand/inventory items with offhand.
+4. Craft with an empty offhand and verify crafted output does **not** auto-route into offhand unexpectedly.
+5. Pick up dropped items with empty offhand and verify normal inventory routing.
+6. Leave/re-enter the world and confirm the offhand item persists.
+7. Recheck Bow TPP and Trident FPP visuals without changing calibration values.
+
+Important: disabling the module reverts the constructor instruction for future
+Item constructions, but Item singletons already constructed in the current
+process keep their flag values. Restart Minecraft for a complete vanilla-policy
+rollback.
 
 ## Build
 
@@ -47,19 +46,5 @@ bash ./scripts/build.sh
 Output:
 
 ```text
-dist/arm64-v8a/levi-offhand-v0.2.59.levipack
+dist/arm64-v8a/levi-offhand-v0.2.60.levipack
 ```
-
-## Runtime validation
-
-Use Minecraft **1.26.45.1**.
-
-1. Start from a fresh game launch and verify there is no crash when Trident is
-   placed in offhand.
-2. Bow TPP: adjust `Bow TPP Tilt (TEMP)` until the upper limb is straight while
-   the grip stays in the accepted v0.2.55 position. Report the final number.
-3. Trident FPP: adjust only `Trident FPP Horizontal (TEMP)` until the native 3D
-   model sits on the left/offhand side. Report the final number. If its head is
-   still inverted, capture `[TridentFppPoleRotation]` as well.
-4. Regression: Bow FPP, Trident TPP, mainhand tools, inventory preview and
-   unrelated offhand items must remain unchanged.
