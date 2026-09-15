@@ -70,6 +70,15 @@ jobs:
           echo "1f3bc8941883aa14702f43bbb5950ec0eda03045ccc5b9feb98fc28fc0e98e39  /tmp/v0267-overlay.patch.gz" | sha256sum --check --strict
           gzip -dc /tmp/v0267-overlay.patch.gz > /tmp/v0267-overlay.patch
           echo "ec5bd46f1a776f93630bf67ff077165545fe7efa3563982edf55b764f2cca587  /tmp/v0267-overlay.patch" | sha256sum --check --strict
+          python3 - <<'PY2'
+          from pathlib import Path
+          p=Path('/tmp/v0267-overlay.patch')
+          s=p.read_text()
+          marker='diff --git a/.github/workflows/build.yml b/.github/workflows/build.yml'
+          start=s.index(marker)
+          end=s.index('diff --git ',start+len(marker))
+          p.write_text(s[:start]+s[end:])
+          PY2
           patch -p1 < /tmp/v0267-overlay.patch
           test "$(git hash-object src/render/OffhandBlockRenderPatch.cpp)" = "edd64df41adc8a690f0ec8741537f8e3296a1643"
           test "$(git hash-object src/render/NativeAttachmentFix.hpp)" = "b5c36eeda2010b40757e0106112a25b8a33e9db4"
