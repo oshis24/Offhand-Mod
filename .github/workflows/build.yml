@@ -59,18 +59,20 @@ jobs:
       - name: Apply v0.2.67 reference-carrier overlay
         run: |
           cat \
-            .github/v0267-overlay.chunk00 \
-            .github/v0267-overlay.chunk01 \
-            .github/v0267-overlay.chunk02 \
+            .github/v0267-final.part00 \
+            .github/v0267-final.part01 \
+            .github/v0267-final.part23 \
+            .github/v0267-final.part45 \
+            .github/v0267-final.part06 \
             > /tmp/v0267-overlay.patch.gz.b64
-          echo "6a712ba31a2122a02d1d817c8181beef90fe350bc7ce9a3d9cb414163df93fa9  /tmp/v0267-overlay.patch.gz.b64" | sha256sum --check --strict
+          echo "ef4c61db965d170b332f76dd30cd19dcb92f06d1841acda7ca2f42748460b9fb  /tmp/v0267-overlay.patch.gz.b64" | sha256sum --check --strict
           base64 --decode /tmp/v0267-overlay.patch.gz.b64 > /tmp/v0267-overlay.patch.gz
-          echo "6f4f07dac84f505e259e5f2fe84424947e42cc0e19c64b57b07b9fa73a070079  /tmp/v0267-overlay.patch.gz" | sha256sum --check --strict
+          echo "1f3bc8941883aa14702f43bbb5950ec0eda03045ccc5b9feb98fc28fc0e98e39  /tmp/v0267-overlay.patch.gz" | sha256sum --check --strict
           gzip -dc /tmp/v0267-overlay.patch.gz > /tmp/v0267-overlay.patch
-          echo "e1e5ad83d667ec0e4576dbaf35e8f3a24b51548cca4dc4da0d365f56c0ae81b9  /tmp/v0267-overlay.patch" | sha256sum --check --strict
+          echo "ec5bd46f1a776f93630bf67ff077165545fe7efa3563982edf55b764f2cca587  /tmp/v0267-overlay.patch" | sha256sum --check --strict
           patch -p1 < /tmp/v0267-overlay.patch
-          test "$(git hash-object src/render/OffhandBlockRenderPatch.cpp)" = "3a3ea8cde3a0ae3df2376fff3c1bd0a9aa3c43be"
-          test "$(git hash-object src/render/NativeAttachmentFix.hpp)" = "deb12b1f33aa36e91d143d996ea92c415604f128"
+          test "$(git hash-object src/render/OffhandBlockRenderPatch.cpp)" = "edd64df41adc8a690f0ec8741537f8e3296a1643"
+          test "$(git hash-object src/render/NativeAttachmentFix.hpp)" = "b5c36eeda2010b40757e0106112a25b8a33e9db4"
           test "$(git hash-object manifest.json)" = "de4cd95aafb6d9b732000f1560b1a1c9fe4e61ec"
           grep -q '"version": "0.2.67"' manifest.json
 
